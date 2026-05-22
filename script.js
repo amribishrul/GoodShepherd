@@ -1,269 +1,322 @@
-// --- 1. Interactive Digital Network Canvas ---
-const canvas = document.getElementById('bg-canvas');
-const ctx = canvas.getContext('2d');
+document.addEventListener("DOMContentLoaded", () => {
 
-let width, height;
-let particles = [];
-let mouse = { x: null, y: null, radius: 120 };
+    /* =================================================================
+       1. Canvas Galaxy Background (Magnetic Cursor Particles)
+    ================================================================= */
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
 
-function resizeCanvas() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-    initParticles(); // Re-initialize on resize for even distribution
-}
-window.addEventListener('resize', resizeCanvas);
+    let width, height;
+    let particles = [];
+    const mouse = { x: -1000, y: -1000 };
 
-window.addEventListener('mousemove', (e) => {
-    mouse.x = e.x;
-    mouse.y = e.y;
-});
-window.addEventListener('mouseout', () => {
-    mouse.x = null;
-    mouse.y = null;
-});
-
-class Particle {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.baseX = this.x;
-        this.baseY = this.y;
-        this.size = Math.random() * 2 + 1; // Small squares
-        this.density = (Math.random() * 20) + 5;
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
     }
+    window.addEventListener('resize', resize);
+    resize();
 
-    draw() {
-        ctx.fillStyle = 'rgba(76, 132, 217, 0.6)'; // Soft tech blue
-        // Draw squares instead of circles to match the digital data vibe
-        ctx.fillRect(this.x, this.y, this.size, this.size);
-    }
+    window.addEventListener('mousemove', (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+    });
 
-    update() {
-        // Calculate distance from mouse
-        let dx = mouse.x - this.x;
-        let dy = mouse.y - this.y;
-        let distance = Math.sqrt(dx * dx + dy * dy);
+    class Particle {
+        constructor() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.vx = (Math.random() - 0.5) * 0.5;
+            this.vy = (Math.random() - 0.5) * 0.5;
+            this.baseRadius = Math.random() * 1.5 + 0.5;
+            this.radius = this.baseRadius;
+            this.color = `rgba(117, 165, 233, ${Math.random() * 0.5 + 0.1})`;
+        }
 
-        // Elastic return forces
-        let forceDirectionX = dx / distance;
-        let forceDirectionY = dy / distance;
-        let maxDistance = mouse.radius;
-        let force = (maxDistance - distance) / maxDistance;
-        let directionX = forceDirectionX * force * this.density;
-        let directionY = forceDirectionY * force * this.density;
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
 
-        if (distance < mouse.radius) {
-            // Scatter effect: push particles away
-            this.x -= directionX;
-            this.y -= directionY;
-        } else {
-            // Spring effect: return to base position smoothly
-            if (this.x !== this.baseX) {
-                let dxBase = this.x - this.baseX;
-                this.x -= dxBase / 20;
-            }
-            if (this.y !== this.baseY) {
-                let dyBase = this.y - this.baseY;
-                this.y -= dyBase / 20;
+            if (this.x < 0 || this.x > width) this.vx *= -1;
+            if (this.y < 0 || this.y > height) this.vy *= -1;
+
+            const dx = mouse.x - this.x;
+            const dy = mouse.y - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 150) {
+                const forceDirectionX = dx / distance;
+                const forceDirectionY = dy / distance;
+                const force = (150 - distance) / 150;
+
+                this.x -= forceDirectionX * force * 2;
+                this.y -= forceDirectionY * force * 2;
+                this.radius = this.baseRadius * 2;
+            } else {
+                this.radius = this.baseRadius;
             }
         }
+
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+        }
     }
-}
 
-function initParticles() {
-    particles = [];
-    // Higher density for the "data cloud" look
-    let numberOfParticles = (width * height) / 4000;
-    for (let i = 0; i < numberOfParticles; i++) {
-        let x = Math.random() * width;
-        let y = Math.random() * height;
-        particles.push(new Particle(x, y));
+    const particleCount = window.innerWidth > 768 ? 150 : 50;
+    for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
     }
-}
 
-function connectParticles() {
-    for (let a = 0; a < particles.length; a++) {
-        for (let b = a; b < particles.length; b++) {
-            let dx = particles[a].x - particles[b].x;
-            let dy = particles[a].y - particles[b].y;
-            let distance = dx * dx + dy * dy;
+    function animateParticles() {
+        ctx.clearRect(0, 0, width, height);
 
-            // Only draw lines if particles are close to each other
-            if (distance < 3500) {
-                // AND only draw them if they are relatively close to the mouse (creates a "flashlight" focus effect)
-                let mouseDx = mouse.x - particles[a].x;
-                let mouseDy = mouse.y - particles[a].y;
-                let mouseDistance = Math.sqrt(mouseDx * mouseDx + mouseDy * mouseDy);
+        particles.forEach(p => {
+            p.update();
+            p.draw();
+        });
 
-                if (mouseDistance < mouse.radius * 1.5) {
-                    let opacityValue = 1 - (distance / 3500);
-                    ctx.strokeStyle = `rgba(117, 165, 233, ${opacityValue * 0.4})`; // Light accent blue
-                    ctx.lineWidth = 0.5;
-                    ctx.beginPath();
-                    ctx.moveTo(particles[a].x, particles[a].y);
-                    ctx.lineTo(particles[b].x, particles[b].y);
-                    ctx.stroke();
-                }
+        particles.forEach((p1, i) => {
+            const dxMouse = mouse.x - p1.x;
+            const dyMouse = mouse.y - p1.y;
+            const distMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
+
+            if(distMouse < 150) {
+                particles.slice(i + 1).forEach(p2 => {
+                    const dx = p1.x - p2.x;
+                    const dy = p1.y - p2.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 80) {
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.strokeStyle = `rgba(76, 132, 217, ${1 - dist/80})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                });
             }
+        });
+
+        requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    /* =================================================================
+       2. Three.js Holographic Wavy Globe (NOW WITH MOUSE INTERACTION)
+    ================================================================= */
+    const globeContainer = document.getElementById('globe-container');
+    if (globeContainer && typeof THREE !== 'undefined') {
+        const scene = new THREE.Scene();
+
+        const camera = new THREE.PerspectiveCamera(45, globeContainer.clientWidth / globeContainer.clientHeight, 0.1, 1000);
+        camera.position.z = 50;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(globeContainer.clientWidth, globeContainer.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        globeContainer.appendChild(renderer.domElement);
+
+        const globeGroup = new THREE.Group();
+        scene.add(globeGroup);
+
+        // Core Sphere
+        const geometry = new THREE.SphereGeometry(15, 64, 64);
+        const particlesMat = new THREE.PointsMaterial({
+            color: 0x75A5E9,
+            size: 0.1,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+        const spherePoints = new THREE.Points(geometry, particlesMat);
+        globeGroup.add(spherePoints);
+
+        // Wireframe Mesh
+        const wireMat = new THREE.MeshBasicMaterial({
+            color: 0x3267C9,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.15,
+            blending: THREE.AdditiveBlending
+        });
+        const sphereWire = new THREE.Mesh(geometry, wireMat);
+        globeGroup.add(sphereWire);
+
+        // Orbit Rings
+        const ringGeo = new THREE.RingGeometry(20, 20.2, 64);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x4C84D9, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+        const ring1 = new THREE.Mesh(ringGeo, ringMat);
+        ring1.rotation.x = Math.PI / 2;
+        globeGroup.add(ring1);
+
+        const ring2 = new THREE.Mesh(ringGeo, ringMat);
+        ring2.rotation.y = Math.PI / 3;
+        globeGroup.add(ring2);
+
+        // Store original vertices for animation
+        const positionAttribute = geometry.attributes.position;
+        const originalPositions = [];
+        for (let i = 0; i < positionAttribute.count; i++) {
+            originalPositions.push(new THREE.Vector3().fromBufferAttribute(positionAttribute, i));
         }
-    }
-}
 
-function animateParticles() {
-    ctx.clearRect(0, 0, width, height);
-    for (let i = 0; i < particles.length; i++) {
-        particles[i].update();
-        particles[i].draw();
-    }
-    connectParticles();
-    requestAnimationFrame(animateParticles);
-}
+        // --- NEW: Raycaster & Mouse Tracking ---
+        const raycaster = new THREE.Raycaster();
+        const threeMouse = new THREE.Vector2(-100, -100);
+        let targetDisplacement = 0.3; // Base wave height
+        let currentDisplacement = 0.3;
+        let targetRotationSpeed = 0.002; // Base spin speed
+        let currentRotationSpeed = 0.002;
+        let targetTilt = 0.1; // Base tilt
+        let currentTilt = 0.1;
 
-resizeCanvas();
-animateParticles();
+        globeContainer.addEventListener('mousemove', (event) => {
+            const rect = globeContainer.getBoundingClientRect();
+            // Convert mouse position to normalized device coordinates (-1 to +1)
+            threeMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            threeMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        });
 
+        globeContainer.addEventListener('mouseleave', () => {
+            threeMouse.x = -100; // Move laser off-screen
+            threeMouse.y = -100;
+        });
 
-// --- 2. Three.js Orbital Galaxy (Hero Right Side) ---
-const threeContainer = document.getElementById('hero-3d-container');
+        // Handle Resizing
+        window.addEventListener('resize', () => {
+            if(globeContainer) {
+                camera.aspect = globeContainer.clientWidth / globeContainer.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(globeContainer.clientWidth, globeContainer.clientHeight);
+            }
+        });
 
-if (threeContainer && typeof THREE !== 'undefined') {
-    const scene = new THREE.Scene();
+        const clock = new THREE.Clock();
 
-    // Camera setup
-    const camera = new THREE.PerspectiveCamera(75, threeContainer.clientWidth / threeContainer.clientHeight, 0.1, 1000);
-    camera.position.z = 50;
+        function animateGlobe() {
+            requestAnimationFrame(animateGlobe);
+            const elapsedTime = clock.getElapsedTime();
 
-    // Renderer setup
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setSize(threeContainer.clientWidth, threeContainer.clientHeight);
-    threeContainer.appendChild(renderer.domElement);
+            // --- NEW: Check for Mouse Intersections ---
+            raycaster.setFromCamera(threeMouse, camera);
+            // Check if laser hits the wireframe sphere
+            const intersects = raycaster.intersectObject(sphereWire);
 
-    // Create Particle Galaxy System
-    const particleCount = 4000;
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-    const sizes = new Float32Array(particleCount);
+            if (intersects.length > 0) {
+                // Mouse is hovering over the globe
+                targetDisplacement = 1.2; // Intense wave distortion
+                targetRotationSpeed = 0.008; // Spin faster
+                targetTilt = threeMouse.y * 0.5; // Tilt towards mouse
+                globeContainer.style.cursor = 'crosshair'; // Change cursor to look techy
+            } else {
+                // Mouse is off the globe
+                targetDisplacement = 0.3; // Return to calm wave
+                targetRotationSpeed = 0.002; // Return to slow spin
+                targetTilt = Math.sin(elapsedTime * 0.2) * 0.1; // Return to slow bobbing
+                globeContainer.style.cursor = 'default';
+            }
 
-    for(let i = 0; i < particleCount; i++) {
-        // Create an orbital torus/sphere shape
-        const r = 25 + Math.random() * 15;
-        const theta = 2 * Math.PI * Math.random();
-        const phi = Math.acos(2 * Math.random() - 1);
+            // Smooth easing for transitions
+            currentDisplacement += (targetDisplacement - currentDisplacement) * 0.05;
+            currentRotationSpeed += (targetRotationSpeed - currentRotationSpeed) * 0.05;
+            currentTilt += (targetTilt - currentTilt) * 0.05;
 
-        // Slightly squash the sphere into a galaxy shape
-        positions[i*3] = r * Math.sin(phi) * Math.cos(theta);
-        positions[i*3+1] = (r * Math.sin(phi) * Math.sin(theta)) * 0.3; // flattened Y
-        positions[i*3+2] = r * Math.cos(phi);
+            // Apply Rotations
+            globeGroup.rotation.y += currentRotationSpeed;
+            globeGroup.rotation.x = currentTilt;
 
-        sizes[i] = Math.random() * 1.5;
-    }
+            // Add subtle parallax based on mouse position
+            if (intersects.length > 0) {
+                globeGroup.rotation.y += threeMouse.x * 0.01;
+            }
 
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            // Apply Wavy Vertex Animation
+            for (let i = 0; i < positionAttribute.count; i++) {
+                const vertex = originalPositions[i];
 
-    const material = new THREE.PointsMaterial({
-        color: 0x4C84D9,
-        size: 0.3,
-        transparent: true,
-        opacity: 0.8,
-        blending: THREE.AdditiveBlending
-    });
+                const wave1 = Math.sin(vertex.x * 0.2 + elapsedTime * 1.5);
+                const wave2 = Math.cos(vertex.y * 0.2 + elapsedTime * 1.5);
 
-    const starSphere = new THREE.Points(geometry, material);
-    scene.add(starSphere);
+                // Use the interactive currentDisplacement variable
+                const displacement = (wave1 + wave2) * currentDisplacement;
 
-    // Resize handler for Three.js
-    window.addEventListener('resize', () => {
-        if(threeContainer) {
-            camera.aspect = threeContainer.clientWidth / threeContainer.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(threeContainer.clientWidth, threeContainer.clientHeight);
+                const normal = vertex.clone().normalize();
+                const newPos = vertex.clone().add(normal.multiplyScalar(displacement));
+
+                positionAttribute.setXYZ(i, newPos.x, newPos.y, newPos.z);
+            }
+            positionAttribute.needsUpdate = true;
+
+            // Animate rings
+            ring1.rotation.z -= 0.005;
+            ring2.rotation.z += 0.003;
+
+            renderer.render(scene, camera);
         }
-    });
 
-    // Animation Loop for Three.js
-    let clock = new THREE.Clock();
-    function animateThree() {
-        requestAnimationFrame(animateThree);
-        const elapsedTime = clock.getElapsedTime();
-
-        // Gentle rotation
-        starSphere.rotation.y = elapsedTime * 0.05;
-        starSphere.rotation.x = Math.sin(elapsedTime * 0.2) * 0.1;
-        starSphere.rotation.z = Math.cos(elapsedTime * 0.1) * 0.1;
-
-        renderer.render(scene, camera);
+        animateGlobe();
     }
-    animateThree();
-}
 
-// --- 3. Magnetic UI Elements ---
-const magneticEls = document.querySelectorAll('.magnetic');
+    /* =================================================================
+       3. UI Interactions (Scroll Reveal, Magnetic Buttons, 3D Tilt)
+    ================================================================= */
 
-magneticEls.forEach((el) => {
-    el.addEventListener('mousemove', function(e) {
-        const position = el.getBoundingClientRect();
-        const x = e.clientX - position.left - position.width / 2;
-        const y = e.clientY - position.top - position.height / 2;
+    const revealElements = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if(entry.isIntersecting) {
+                entry.target.classList.add('active');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { rootMargin: "0px 0px -100px 0px", threshold: 0.1 });
 
-        // Move slightly towards cursor
-        el.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
+    revealElements.forEach(el => revealObserver.observe(el));
+
+    const magneticBtns = document.querySelectorAll('.magnetic-btn');
+    magneticBtns.forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+            const rect = btn.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+
+            btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
+
+            const span = btn.querySelector('span');
+            if(span) {
+                span.style.transform = `translate(${x * 0.1}px, ${y * 0.1}px)`;
+            }
+        });
+
+        btn.addEventListener('mouseleave', () => {
+            btn.style.transform = `translate(0px, 0px)`;
+            const span = btn.querySelector('span');
+            if(span) span.style.transform = `translate(0px, 0px)`;
+        });
     });
 
-    el.addEventListener('mouseleave', function() {
-        el.style.transform = 'translate(0px, 0px)';
-        el.style.transition = 'transform 0.5s ease';
+    const tiltCards = document.querySelectorAll('.tilt-card');
+    tiltCards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            const rotateX = ((y - centerY) / centerY) * -10;
+            const rotateY = ((x - centerX) / centerX) * 10;
+
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+        });
     });
-
-    el.addEventListener('mouseenter', function() {
-        el.style.transition = 'none'; // Remove transition for instant magnetic snap
-    });
-});
-
-// --- 4. 3D Tilt Effect on Cards ---
-const tiltCards = document.querySelectorAll('.tilt-card');
-
-tiltCards.forEach(card => {
-    card.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-
-        const rotateX = ((y - centerY) / centerY) * -5; // Max 5 deg rotation
-        const rotateY = ((x - centerX) / centerX) * 5;
-
-        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-        card.style.transition = 'none';
-    });
-
-    card.addEventListener('mouseleave', () => {
-        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
-        card.style.transition = 'transform 0.5s ease';
-    });
-});
-
-// --- 5. Scroll Reveal Animations (Intersection Observer) ---
-const revealElements = document.querySelectorAll('.reveal');
-
-const revealOptions = {
-    threshold: 0.15,
-    rootMargin: "0px 0px -50px 0px"
-};
-
-const revealOnScroll = new IntersectionObserver(function(entries, observer) {
-    entries.forEach(entry => {
-        if (!entry.isIntersecting) {
-            return;
-        } else {
-            entry.target.classList.add('active');
-            observer.unobserve(entry.target);
-        }
-    });
-}, revealOptions);
-
-revealElements.forEach(el => {
-    revealOnScroll.observe(el);
 });
