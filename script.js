@@ -1,6 +1,119 @@
 document.addEventListener("DOMContentLoaded", () => {
 
     /* =================================================================
+       0. Cinematic Home Page Loader Sequence
+    ================================================================= */
+    {
+        const loaderObj = document.getElementById('home-loader');
+        if (loaderObj) {
+            document.body.classList.add('home-loading');
+
+            const lCanvas = document.getElementById('loader-binary-canvas');
+            const lCtx = lCanvas.getContext('2d');
+            let lWidth, lHeight;
+            let lDrops = [];
+            const lFontSize = 16;
+            let lSpeed = 1;
+            let isIntense = false;
+
+            const lColors = ['#113886', '#3a0ca3', '#8e2de2', '#4361ee', '#e0e4ec', '#ff1f3d'];
+
+            function resizeLoader() {
+                lWidth = lCanvas.width = window.innerWidth;
+                lHeight = lCanvas.height = window.innerHeight;
+                let columns = Math.floor(lWidth / lFontSize);
+                lDrops = [];
+                for(let x = 0; x < columns; x++) lDrops[x] = Math.random() * -100;
+            }
+            window.addEventListener('resize', resizeLoader);
+            resizeLoader();
+
+            function drawLoaderRain() {
+                lCtx.fillStyle = 'rgba(2, 3, 8, 0.15)';
+                lCtx.fillRect(0, 0, lWidth, lHeight);
+                lCtx.font = lFontSize + 'px Orbitron';
+
+                for (let i = 0; i < lDrops.length; i++) {
+                    const text = Math.random() > 0.5 ? '1' : '0';
+                    const finalTxt = (isIntense && Math.random() > 0.9) ? Math.floor(Math.random()*16).toString(16).toUpperCase() : text;
+
+                    lCtx.fillStyle = lColors[Math.floor(Math.random() * lColors.length)];
+                    if (isIntense && Math.random() > 0.8) lCtx.fillStyle = '#fff';
+
+                    lCtx.fillText(finalTxt, i * lFontSize, lDrops[i] * lFontSize);
+
+                    if (lDrops[i] * lFontSize > lHeight && Math.random() > 0.95) {
+                        lDrops[i] = 0;
+                    }
+                    lDrops[i] += lSpeed;
+                }
+            }
+
+            let loaderAnimFrame;
+            function loopLoader() {
+                drawLoaderRain();
+                loaderAnimFrame = requestAnimationFrame(loopLoader);
+            }
+            loopLoader();
+
+            // Progress Sequence Logic
+            const pBar = document.getElementById('loader-progress-bar');
+            const pText = document.getElementById('loader-percent');
+            const statusText = document.getElementById('loader-status');
+            const loaderPanel = document.getElementById('loader-panel');
+            const loaderFlash = document.getElementById('loader-flash');
+
+            const startTime = Date.now();
+            const duration = 5000; // 5 seconds to load
+
+            function updateProgress() {
+                let elapsed = Date.now() - startTime;
+                let progress = Math.min((elapsed / duration) * 100, 100);
+
+                pBar.style.width = progress + '%';
+                pText.innerText = Math.floor(progress) + '%';
+
+                // Message Sequence
+                if (progress < 20) statusText.innerText = "TEKNORA INTERFACE RECEIVED";
+                else if (progress < 40) statusText.innerText = "DECODING BINARY STREAM";
+                else if (progress < 60) statusText.innerText = "LOADING ROBOTICS CORE";
+                else if (progress < 80) statusText.innerText = "INITIALIZING HOME PAGE";
+                else if (progress < 95) statusText.innerText = "SYSTEM READY";
+
+                // Intense burst near the end
+                if (progress > 85) {
+                    isIntense = true;
+                    lSpeed = 5;
+                }
+
+                if (progress >= 100) {
+                    // Trigger Final Glitch and Flash
+                    loaderPanel.classList.add('glitch');
+                    loaderFlash.classList.add('active');
+
+                    setTimeout(() => {
+                        // Fade Out Overlay
+                        loaderObj.classList.add('fade-out');
+                        document.body.classList.remove('home-loading');
+                        document.body.classList.add('home-loaded');
+
+                        setTimeout(() => {
+                            // Cleanup Loader completely
+                            cancelAnimationFrame(loaderAnimFrame);
+                            window.removeEventListener('resize', resizeLoader);
+                            loaderObj.remove();
+                        }, 1000);
+
+                    }, 400); // Glitch duration before fade
+                    return;
+                }
+                requestAnimationFrame(updateProgress);
+            }
+            updateProgress();
+        }
+    }
+
+    /* =================================================================
        1. Custom Robotics Cursor & Canvas Tracking Setup
     ================================================================= */
     const canvas = document.getElementById('bg-canvas');
@@ -61,24 +174,67 @@ document.addEventListener("DOMContentLoaded", () => {
         constructor() {
             this.x = Math.random() * width;
             this.y = Math.random() * height;
-            // Snappy, rigid movement for a "circuit" feel
-            this.vx = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.3 + 0.1);
-            this.vy = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.3 + 0.1);
+
+            // Base velocities for the standard circuit drift
+            this.baseVx = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.3 + 0.1);
+            this.baseVy = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.3 + 0.1);
+
+            // Current interactive velocities
+            this.vx = this.baseVx;
+            this.vy = this.baseVy;
+
             this.radius = Math.random() * 1.5 + 0.5;
             this.color = particleColors[Math.floor(Math.random() * particleColors.length)];
         }
 
         update() {
+            // Calculate distance between particle and custom cursor
+            const dx = mouse.x - this.x;
+            const dy = mouse.y - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            const magneticRadius = 250; // The radius of the magnetic field
+
+            if (distance < magneticRadius && mouse.x > 0) {
+                // Apply a smooth pull force (stronger as it gets closer)
+                const force = (magneticRadius - distance) / magneticRadius;
+                const pullStrength = 0.04; // Adjust for a softer or more aggressive snap
+
+                this.vx += (dx / distance) * force * pullStrength;
+                this.vy += (dy / distance) * force * pullStrength;
+            } else {
+                // Easing function to smoothly return to base velocities
+                this.vx += (this.baseVx - this.vx) * 0.02;
+                this.vy += (this.baseVy - this.vy) * 0.02;
+            }
+
+            // Enforce a speed limit to prevent chaotic clumping or slingshotting
+            const maxSpeed = 2.5;
+            const currentSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+            if (currentSpeed > maxSpeed) {
+                this.vx = (this.vx / currentSpeed) * maxSpeed;
+                this.vy = (this.vy / currentSpeed) * maxSpeed;
+            }
+
+            // Update positions
             this.x += this.vx;
             this.y += this.vy;
 
-            if (this.x < 0 || this.x > width) this.vx *= -1;
-            if (this.y < 0 || this.y > height) this.vy *= -1;
+            // Boundary collision handling
+            if (this.x < 0 || this.x > width) {
+                this.vx *= -1;
+                this.baseVx *= -1;
+                this.x = Math.max(0, Math.min(this.x, width)); // Prevent getting stuck outside
+            }
+            if (this.y < 0 || this.y > height) {
+                this.vy *= -1;
+                this.baseVy *= -1;
+                this.y = Math.max(0, Math.min(this.y, height)); // Prevent getting stuck outside
+            }
         }
 
         draw() {
             ctx.beginPath();
-            // Square particles to look like micro-components
             ctx.rect(this.x, this.y, this.radius * 2, this.radius * 2);
             ctx.fillStyle = this.color;
             ctx.fill();
@@ -181,8 +337,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const model = gltf.scene;
 
                 // Made smaller and moved downwards based on the previous adjustments
-                model.scale.set(55, 55, 55);
-                model.position.set(0, -10, 0);
+                model.scale.set(65, 65, 65);
+                model.position.set(0, -12, 0);
 
                 // Premium Editorial Finish: High metalness, moderate roughness for matte highlights
                 model.traverse((child) => {
