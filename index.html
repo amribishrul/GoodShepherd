@@ -3,86 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Good Shepherd Convent Kandy IT Society</title>
+  <title>TekNora Robotics Club | Good Shepherd Convent Kandy</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Orbitron:wght@400;500;700&family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
+
 <canvas id="bg-canvas"></canvas>
 
 <nav class="navbar">
   <div class="nav-brand">
-    <span class="school-name">Good Shepherd Convent Kandy</span>
-    <span class="society-name">IT Society</span>
+    <img src="TekNora Logo.svg" alt="TekNora Robotics Logo" class="nav-logo">
+    <div class="nav-text">
+      <span class="school-name">Good Shepherd Convent Kandy</span>
+      <span class="society-name">TekNora Robotics</span>
+    </div>
   </div>
   <ul class="nav-links">
     <li><a href="#home">Home</a></li>
     <li><a href="#about">About</a></li>
-    <li><a href="#activities">Activities</a></li>
-    <li><a href="#projects">Projects</a></li>
+    <li><a href="#activities">Hardware</a></li>
+    <li><a href="#projects">Prototypes</a></li>
     <li><a href="#gallery">Gallery</a></li>
-    <li><a href="#committee">Committee</a></li>
-    <li><a href="#contact">Contact</a></li>
+    <li><a href="#committee">Command</a></li>
   </ul>
-  <a href="#contact" class="btn-join magnetic-btn"><span>Join Society</span></a>
+  <a href="#contact" class="btn-join magnetic-btn"><span>Join The Club</span></a>
 </nav>
 
 <header id="home" class="hero-section">
   <div class="hero-content reveal">
     <div class="tech-tags">
-      <span class="tag">AI</span>
-      <span class="tag">IoT</span>
-      <span class="tag">Coding</span>
-      <span class="tag">Robotics</span>
-      <span class="tag">Web Development</span>
-      <span class="tag">Innovation</span>
+      <span class="tag">Mechatronics</span>
+      <span class="tag">Arduino</span>
+      <span class="tag">Automation</span>
+      <span class="tag">Circuit Design</span>
+      <span class="tag">AI Integration</span>
     </div>
-    <h1 class="hero-title">Good Shepherd Convent Kandy <span>IT Society</span></h1>
-    <h2 class="hero-tagline">Exploring Technology Beyond the Classroom</h2>
+    <h1 class="hero-title">TekNora <span>Robotics Club</span></h1>
+    <h2 class="hero-tagline">Engineering the Future, One Mechanism at a Time.</h2>
     <p class="hero-description">
-      Empowering students to explore coding, artificial intelligence, IoT, robotics, web development, and digital innovation through hands-on learning and creative technology experiences.
+      Welcome to the command center of innovation. We empower students to design, build, and program autonomous robots, smart circuits, and cutting-edge mechatronic systems.
     </p>
     <div class="hero-actions">
-      <a href="#activities" class="btn-primary magnetic-btn"><span>Explore Activities</span></a>
-      <a href="#projects" class="btn-secondary magnetic-btn"><span>View Projects</span></a>
+      <a href="#activities" class="btn-primary magnetic-btn"><span>Boot Sequence</span></a>
+      <a href="#projects" class="btn-secondary magnetic-btn"><span>View Schematics</span></a>
     </div>
   </div>
   <div class="hero-visual">
     <div class="hud-elements">
-      <div class="hud-node top-left">SYS_ACTIVE</div>
-      <div class="hud-node bottom-right">LAT: 7.2906° N</div>
+      <div class="hud-node top-left">TARGET_LOCKED</div>
+      <div class="hud-node bottom-right">SENSOR_ARRAY: ONLINE</div>
     </div>
-    <div id="globe-container"></div>
+    <div id="3d-container"></div>
   </div>
 </header>
 
 <section id="about" class="section">
   <div class="section-header reveal">
-    <h2 class="section-title">About Our IT Society</h2>
-    <p class="section-subtitle">A student-led technology society built to inspire curiosity, creativity, and innovation.</p>
+    <h2 class="section-title">System Overview</h2>
+    <p class="section-subtitle">A student-led hardware and programming society built to push the boundaries of mechanical creativity.</p>
   </div>
   <div class="container">
     <p class="about-text reveal">
-      The Good Shepherd Convent Kandy IT Society provides students with opportunities to explore the fast-changing world of technology. Through workshops, competitions, projects, and interactive sessions, the society encourages students to think creatively, solve real-world problems, and build confidence in digital skills.
+      The TekNora Robotics Club at Good Shepherd Convent Kandy bridges the gap between software and the physical world. Through hands-on soldering, circuit building, structural design, and microcontroller programming, we turn imagination into functioning machinery.
     </p>
     <div class="grid grid-3">
       <div class="glass-card tilt-card reveal">
-        <h3>Learn</h3>
-        <p>Explore coding, AI, IoT, robotics, and digital tools through guided activities.</p>
+        <h3>Design</h3>
+        <p>Learn 3D modeling, structural mechanics, and how to draft blueprints for complex robotic chassis.</p>
       </div>
       <div class="glass-card tilt-card reveal" style="transition-delay: 0.1s;">
-        <h3>Create</h3>
-        <p>Build creative projects, websites, prototypes, and innovative tech solutions.</p>
+        <h3>Wire</h3>
+        <p>Master circuit boards, sensors, actuators, and the hardware that brings static metal to life.</p>
       </div>
       <div class="glass-card tilt-card reveal" style="transition-delay: 0.2s;">
-        <h3>Lead</h3>
-        <p>Develop teamwork, communication, leadership, and problem-solving skills.</p>
+        <h3>Code</h3>
+        <p>Program microcontrollers like Arduino and Raspberry Pi to give your machines logic and autonomy.</p>
       </div>
     </div>
   </div>
@@ -90,106 +95,99 @@
 
 <section id="activities" class="section">
   <div class="section-header reveal">
-    <h2 class="section-title">What We Do</h2>
-    <p class="section-subtitle">From workshops to innovation challenges, our activities help students experience technology in a practical and exciting way.</p>
+    <h2 class="section-title">Hardware Operations</h2>
+    <p class="section-subtitle">Our core modules for training the next generation of engineers.</p>
   </div>
   <div class="container grid grid-3">
     <div class="glass-card tilt-card reveal">
-      <h3>Technology Workshops</h3>
-      <p>Hands-on sessions designed to introduce students to coding, AI, IoT, robotics, and digital creativity.</p>
+      <h3>Soldering & Circuits</h3>
+      <p>Hands-on workshops teaching the fundamentals of electronics, PCB design, and safe hardware assembly.</p>
     </div>
     <div class="glass-card tilt-card reveal" style="transition-delay: 0.1s;">
-      <h3>Coding Sessions</h3>
-      <p>Interactive programming activities that help students improve logical thinking and problem-solving skills.</p>
+      <h3>Arduino Programming</h3>
+      <p>Deep dives into C++ based microcontroller logic, teaching machines how to read sensors and move motors.</p>
     </div>
     <div class="glass-card tilt-card reveal" style="transition-delay: 0.2s;">
-      <h3>Innovation Challenges</h3>
-      <p>Opportunities for students to design creative solutions for real-world problems using technology.</p>
+      <h3>Robo-Wars & Competitions</h3>
+      <p>Internal and inter-school challenges where students pit their custom-built robots against each other in arenas.</p>
     </div>
     <div class="glass-card tilt-card reveal">
-      <h3>Tech Talks</h3>
-      <p>Inspiring sessions where students learn about future careers, digital trends, and emerging technologies.</p>
+      <h3>Autonomous Systems</h3>
+      <p>Exploring line-following, obstacle avoidance, and basic AI logic for self-navigating rovers.</p>
     </div>
     <div class="glass-card tilt-card reveal" style="transition-delay: 0.1s;">
-      <h3>School Projects</h3>
-      <p>Student-led technology projects that encourage teamwork, creativity, and practical learning.</p>
+      <h3>3D Printing & CAD</h3>
+      <p>Designing custom gears, brackets, and robotic shells using Computer-Aided Design software.</p>
     </div>
     <div class="glass-card tilt-card reveal" style="transition-delay: 0.2s;">
-      <h3>Digital Awareness</h3>
-      <p>Sessions focused on responsible technology use, cyber safety, and digital citizenship.</p>
+      <h3>IoT Home Automation</h3>
+      <p>Connecting hardware to the internet to build smart-home prototypes and remote-controlled mechanisms.</p>
     </div>
   </div>
 </section>
 
 <section id="projects" class="section">
   <div class="section-header reveal">
-    <h2 class="section-title">Student Innovation Projects</h2>
-    <p class="section-subtitle">A showcase of ideas, experiments, and digital solutions created by students.</p>
+    <h2 class="section-title">Active Prototypes</h2>
+    <p class="section-subtitle">Functional machinery developed entirely by our student engineers.</p>
   </div>
   <div class="container grid grid-2">
     <div class="glass-card tilt-card reveal">
-      <div class="project-tag">AI Initiative</div>
-      <h3>AI Awareness Campaign</h3>
-      <p>A student-led initiative to introduce artificial intelligence and its role in education, creativity, and future careers.</p>
+      <div class="project-tag">Mechatronics</div>
+      <h3>T-N01 Robotic Arm</h3>
+      <p>A 5-axis servo-driven robotic arm programmed for precise pick-and-place operations, featuring custom 3D printed joints.</p>
     </div>
     <div class="glass-card tilt-card reveal" style="transition-delay: 0.1s;">
-      <div class="project-tag">Hardware / IoT</div>
-      <h3>IoT Smart Classroom Concept</h3>
-      <p>A prototype idea focused on using connected devices to improve classroom safety, comfort, and efficiency.</p>
+      <div class="project-tag">Autonomous</div>
+      <h3>Pathfinder Rover</h3>
+      <p>A smart chassis equipped with ultrasonic and infrared sensors capable of navigating complex mazes without human input.</p>
     </div>
     <div class="glass-card tilt-card reveal">
-      <div class="project-tag">Web Dev</div>
-      <h3>Web Design Showcase</h3>
-      <p>A collection of student-designed websites, UI concepts, and creative digital interfaces.</p>
+      <div class="project-tag">IoT / Hardware</div>
+      <h3>Smart Convent Module</h3>
+      <p>A networked sensor array prototype designed to monitor classroom temperature, light levels, and automate power usage.</p>
     </div>
     <div class="glass-card tilt-card reveal" style="transition-delay: 0.1s;">
-      <div class="project-tag">Robotics</div>
-      <h3>Robotics Exploration</h3>
-      <p>An introductory project area where students explore basic robotics, sensors, automation, and control systems.</p>
+      <div class="project-tag">Aviation</div>
+      <h3>Quadcopter Drone Basics</h3>
+      <p>An ongoing exploration into drone aerodynamics, motor calibration, and remote flight stabilization.</p>
     </div>
   </div>
 </section>
 
 <section id="timeline" class="section">
   <div class="section-header reveal">
-    <h2 class="section-title">Our Journey</h2>
-    <p class="section-subtitle">A simple timeline showing the IT Society’s activities and future plans.</p>
+    <h2 class="section-title">Club Milestones</h2>
+    <p class="section-subtitle">The evolutionary timeline of the TekNora Robotics Club.</p>
   </div>
   <div class="container">
     <div class="timeline-container">
       <div class="timeline-item reveal">
         <div class="timeline-dot"></div>
         <div class="timeline-content glass-card">
-          <h3>Society Launch</h3>
-          <p>Introduction of the IT Society website, goals, activities, and student participation opportunities.</p>
+          <h3>System Initialization</h3>
+          <p>The official launch of the TekNora Robotics Club, recruiting our first batch of student engineers.</p>
         </div>
       </div>
       <div class="timeline-item reveal">
         <div class="timeline-dot"></div>
         <div class="timeline-content glass-card">
-          <h3>Tech Awareness Sessions</h3>
-          <p>Introductory sessions on coding, AI, IoT, robotics, cyber safety, and future technology pathways.</p>
+          <h3>Basic Circuits Workshop</h3>
+          <p>First hands-on session introducing breadboards, LEDs, resistors, and basic electrical safety.</p>
         </div>
       </div>
       <div class="timeline-item reveal">
         <div class="timeline-dot"></div>
         <div class="timeline-content glass-card">
-          <h3>Practical Workshops</h3>
-          <p>Hands-on activities where students learn by building simple projects and digital solutions.</p>
+          <h3>First Chassis Assembly</h3>
+          <p>Teams successfully construct their first two-wheel drive robotic chassis and calibrate DC motors.</p>
         </div>
       </div>
       <div class="timeline-item reveal">
         <div class="timeline-dot"></div>
         <div class="timeline-content glass-card">
-          <h3>Project Showcase</h3>
-          <p>Students present their ideas, prototypes, websites, and technology-based solutions.</p>
-        </div>
-      </div>
-      <div class="timeline-item reveal">
-        <div class="timeline-dot"></div>
-        <div class="timeline-content glass-card">
-          <h3>Future Innovation Events</h3>
-          <p>Competitions, collaborations, exhibitions, and advanced technology programs.</p>
+          <h3>Code meets Hardware</h3>
+          <p>Integration of Arduino microcontrollers to automate previously manual robotic systems.</p>
         </div>
       </div>
     </div>
@@ -198,54 +196,54 @@
 
 <section id="gallery" class="section">
   <div class="section-header reveal">
-    <h2 class="section-title">Moments From Our Digital Journey</h2>
-    <p class="section-subtitle">A space to showcase workshops, events, student projects, and society memories.</p>
+    <h2 class="section-title">Visual Archives</h2>
+    <p class="section-subtitle">Snapshots from the lab: sparks, wires, and finished builds.</p>
   </div>
   <div class="container grid grid-3">
-    <div class="gallery-block reveal"><span>Workshop Moment</span></div>
-    <div class="gallery-block reveal" style="transition-delay: 0.1s;"><span>Coding Session</span></div>
-    <div class="gallery-block reveal" style="transition-delay: 0.2s;"><span>Innovation Day</span></div>
-    <div class="gallery-block reveal"><span>Tech Talk</span></div>
-    <div class="gallery-block reveal" style="transition-delay: 0.1s;"><span>Project Showcase</span></div>
-    <div class="gallery-block reveal" style="transition-delay: 0.2s;"><span>Team Collaboration</span></div>
+    <div class="gallery-block reveal"><span>Soldering Lab</span></div>
+    <div class="gallery-block reveal" style="transition-delay: 0.1s;"><span>Chassis Build</span></div>
+    <div class="gallery-block reveal" style="transition-delay: 0.2s;"><span>Arduino Coding</span></div>
+    <div class="gallery-block reveal"><span>Robo-Arena</span></div>
+    <div class="gallery-block reveal" style="transition-delay: 0.1s;"><span>Component Sorting</span></div>
+    <div class="gallery-block reveal" style="transition-delay: 0.2s;"><span>Team TekNora</span></div>
   </div>
 </section>
 
 <section id="committee" class="section">
   <div class="section-header reveal">
-    <h2 class="section-title">Meet the Team</h2>
-    <p class="section-subtitle">The students and teachers guiding the IT Society forward.</p>
+    <h2 class="section-title">Command Structure</h2>
+    <p class="section-subtitle">The leadership matrix powering the club.</p>
   </div>
   <div class="container grid grid-3">
     <div class="glass-card profile-card tilt-card reveal">
       <div class="profile-avatar"></div>
       <h3>Teacher-in-Charge</h3>
-      <p>Guiding and supporting the society’s activities, planning, and student engagement.</p>
+      <p>Overseeing operations, lab safety, and providing advanced technical guidance.</p>
     </div>
     <div class="glass-card profile-card tilt-card reveal" style="transition-delay: 0.1s;">
       <div class="profile-avatar"></div>
-      <h3>President</h3>
-      <p>Leading the society with vision, teamwork, and responsibility.</p>
+      <h3>Club President</h3>
+      <p>Directing club vision, coordinating workshops, and leading major projects.</p>
     </div>
     <div class="glass-card profile-card tilt-card reveal" style="transition-delay: 0.2s;">
       <div class="profile-avatar"></div>
-      <h3>Secretary</h3>
-      <p>Managing communication, documentation, and activity coordination.</p>
+      <h3>Hardware Lead</h3>
+      <p>Managing the inventory of motors, sensors, and overseeing physical robot assembly.</p>
     </div>
     <div class="glass-card profile-card tilt-card reveal">
       <div class="profile-avatar"></div>
-      <h3>Treasurer</h3>
-      <p>Supporting budgeting, planning, and society resource management.</p>
+      <h3>Software Lead</h3>
+      <p>Guiding the programming curriculum and helping students debug their code.</p>
     </div>
     <div class="glass-card profile-card tilt-card reveal" style="transition-delay: 0.1s;">
       <div class="profile-avatar"></div>
-      <h3>Media Team</h3>
-      <p>Creating digital content, announcements, visuals, and event coverage.</p>
+      <h3>Secretary</h3>
+      <p>Handling documentation, meeting logs, and external school communications.</p>
     </div>
     <div class="glass-card profile-card tilt-card reveal" style="transition-delay: 0.2s;">
       <div class="profile-avatar"></div>
-      <h3>Technical Team</h3>
-      <p>Supporting website updates, project activities, and technical coordination.</p>
+      <h3>Treasurer</h3>
+      <p>Managing the club budget, component purchasing, and funding allocation.</p>
     </div>
   </div>
 </section>
@@ -253,25 +251,25 @@
 <section id="contact" class="section">
   <div class="container contact-container glass-card reveal">
     <div class="contact-content">
-      <h2>Ready to Explore the Future of Technology?</h2>
-      <p>Join the Good Shepherd Convent Kandy IT Society and become part of a community that learns, creates, and innovates together.</p>
+      <h2>Ready to Build the Future?</h2>
+      <p>Join the TekNora Robotics Club. No prior experience required—just a curiosity to learn how things work and a desire to build.</p>
       <div class="hero-actions">
-        <a href="mailto:itsociety@goodshepherdkandy.edu.lk" class="btn-primary magnetic-btn"><span>Contact Society</span></a>
-        <button class="btn-secondary magnetic-btn"><span>Join Activities</span></button>
+        <a href="mailto:teknora@goodshepherdkandy.edu.lk" class="btn-primary magnetic-btn"><span>Transmit Message</span></a>
+        <button class="btn-secondary magnetic-btn"><span>Apply for Access</span></button>
       </div>
     </div>
     <div class="contact-details">
       <div class="detail-item">
-        <span class="detail-label">Email:</span>
-        <span class="detail-value">itsociety@goodshepherdkandy.edu.lk</span>
+        <span class="detail-label">Email Ping:</span>
+        <span class="detail-value">teknora@goodshepherdkandy.edu.lk</span>
       </div>
       <div class="detail-item">
-        <span class="detail-label">Location:</span>
-        <span class="detail-value">Good Shepherd Convent, Kandy</span>
+        <span class="detail-label">Lab Location:</span>
+        <span class="detail-value">Physics/Hardware Lab, Good Shepherd Convent Kandy</span>
       </div>
       <div class="detail-item">
-        <span class="detail-label">Social Media:</span>
-        <span class="detail-value">Coming Soon</span>
+        <span class="detail-label">Network Status:</span>
+        <span class="detail-value">Accepting New Recruits</span>
       </div>
     </div>
   </div>
@@ -280,20 +278,23 @@
 <footer>
   <div class="container footer-content">
     <div class="footer-brand">
-      <h3>Good Shepherd Convent Kandy IT Society</h3>
-      <p>Exploring Technology Beyond the Classroom</p>
+      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+        <img src="TekNora Logo.svg" alt="TekNora Logo" style="height: 30px; filter: grayscale(0.5) brightness(1.5);">
+        <h3>TekNora Robotics Club</h3>
+      </div>
+      <p>Engineering the Future, One Mechanism at a Time.</p>
     </div>
     <div class="footer-links">
       <a href="#home">Home</a>
       <a href="#about">About</a>
-      <a href="#activities">Activities</a>
-      <a href="#projects">Projects</a>
+      <a href="#activities">Hardware</a>
+      <a href="#projects">Prototypes</a>
       <a href="#gallery">Gallery</a>
       <a href="#contact">Contact</a>
     </div>
   </div>
   <div class="footer-bottom">
-    <p>&copy; 2026 Good Shepherd Convent Kandy IT Society. All rights reserved.</p>
+    <p>&copy; 2026 Good Shepherd Convent Kandy TekNora Robotics Club. All rights reserved.</p>
   </div>
 </footer>
 

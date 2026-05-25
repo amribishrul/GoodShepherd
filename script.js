@@ -1,14 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
 
     /* =================================================================
-       1. Canvas Galaxy Background (Magnetic Cursor Particles)
+       1. Custom Robotics Cursor & Canvas Tracking Setup
     ================================================================= */
     const canvas = document.getElementById('bg-canvas');
     const ctx = canvas.getContext('2d');
-
     let width, height;
     let particles = [];
     const mouse = { x: -1000, y: -1000 };
+
+    // Custom Cursor Elements
+    const cursorDot = document.querySelector('.cursor-dot');
+    const cursorRing = document.querySelector('.cursor-ring');
 
     function resize() {
         width = canvas.width = window.innerWidth;
@@ -18,19 +21,51 @@ document.addEventListener("DOMContentLoaded", () => {
     resize();
 
     window.addEventListener('mousemove', (e) => {
+        // Track for the canvas particles and 3D Robot
         mouse.x = e.clientX;
         mouse.y = e.clientY;
+
+        // Update custom targeting reticle positions
+        if (cursorDot && cursorRing) {
+            cursorDot.style.left = `${e.clientX}px`;
+            cursorDot.style.top = `${e.clientY}px`;
+
+            // The ring uses CSS transitions to smoothly trail slightly behind
+            cursorRing.style.left = `${e.clientX}px`;
+            cursorRing.style.top = `${e.clientY}px`;
+        }
     });
+
+    // Add "Target Locked" effect when hovering over interactive elements
+    const interactiveElements = document.querySelectorAll('a, button, .magnetic-btn, .tilt-card, .gallery-block');
+    interactiveElements.forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            if(cursorRing) cursorRing.classList.add('hover-locked');
+        });
+        el.addEventListener('mouseleave', () => {
+            if(cursorRing) cursorRing.classList.remove('hover-locked');
+        });
+    });
+
+    /* =================================================================
+       2. Canvas Background (Purple/Blue/Silver Circuit Nodes)
+    ================================================================= */
+    // Theme Colors based on Logo (Purple, Royal Blue, Silver)
+    const particleColors = [
+        'rgba(142, 45, 226, 0.5)',  // Violet
+        'rgba(67, 97, 238, 0.4)',   // Blue
+        'rgba(224, 228, 236, 0.3)'  // Silver
+    ];
 
     class Particle {
         constructor() {
             this.x = Math.random() * width;
             this.y = Math.random() * height;
-            this.vx = (Math.random() - 0.5) * 0.5;
-            this.vy = (Math.random() - 0.5) * 0.5;
-            this.baseRadius = Math.random() * 1.5 + 0.5;
-            this.radius = this.baseRadius;
-            this.color = `rgba(117, 165, 233, ${Math.random() * 0.5 + 0.1})`;
+            // Snappy, rigid movement for a "circuit" feel
+            this.vx = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.3 + 0.1);
+            this.vy = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.3 + 0.1);
+            this.radius = Math.random() * 1.5 + 0.5;
+            this.color = particleColors[Math.floor(Math.random() * particleColors.length)];
         }
 
         update() {
@@ -39,33 +74,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (this.x < 0 || this.x > width) this.vx *= -1;
             if (this.y < 0 || this.y > height) this.vy *= -1;
-
-            const dx = mouse.x - this.x;
-            const dy = mouse.y - this.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance < 150) {
-                const forceDirectionX = dx / distance;
-                const forceDirectionY = dy / distance;
-                const force = (150 - distance) / 150;
-
-                this.x -= forceDirectionX * force * 2;
-                this.y -= forceDirectionY * force * 2;
-                this.radius = this.baseRadius * 2;
-            } else {
-                this.radius = this.baseRadius;
-            }
         }
 
         draw() {
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            // Square particles to look like micro-components
+            ctx.rect(this.x, this.y, this.radius * 2, this.radius * 2);
             ctx.fillStyle = this.color;
             ctx.fill();
         }
     }
 
-    const particleCount = window.innerWidth > 768 ? 150 : 50;
+    const particleCount = window.innerWidth > 768 ? 120 : 40;
     for (let i = 0; i < particleCount; i++) {
         particles.push(new Particle());
     }
@@ -78,22 +98,26 @@ document.addEventListener("DOMContentLoaded", () => {
             p.draw();
         });
 
+        // Draw structural connecting lines (like traces on a PCB)
         particles.forEach((p1, i) => {
             const dxMouse = mouse.x - p1.x;
             const dyMouse = mouse.y - p1.y;
             const distMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
 
-            if(distMouse < 150) {
+            if(distMouse < 200) {
                 particles.slice(i + 1).forEach(p2 => {
                     const dx = p1.x - p2.x;
                     const dy = p1.y - p2.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
 
-                    if (dist < 80) {
+                    if (dist < 100) {
                         ctx.beginPath();
                         ctx.moveTo(p1.x, p1.y);
+                        // Draw angled lines for circuit board aesthetics
+                        ctx.lineTo(p1.x, p2.y);
                         ctx.lineTo(p2.x, p2.y);
-                        ctx.strokeStyle = `rgba(76, 132, 217, ${1 - dist/80})`;
+                        // Deep purple/blue tinted lines
+                        ctx.strokeStyle = `rgba(142, 45, 226, ${0.4 - dist/250})`;
                         ctx.lineWidth = 0.5;
                         ctx.stroke();
                     }
@@ -106,163 +130,127 @@ document.addEventListener("DOMContentLoaded", () => {
     animateParticles();
 
     /* =================================================================
-       2. Three.js Holographic Wavy Globe (NOW WITH MOUSE INTERACTION)
+       3. Three.js GLTF Robot Head (Cinematic Studio Setup)
     ================================================================= */
-    const globeContainer = document.getElementById('globe-container');
-    if (globeContainer && typeof THREE !== 'undefined') {
+    const container = document.getElementById('3d-container');
+    if (container && typeof THREE !== 'undefined') {
         const scene = new THREE.Scene();
 
-        const camera = new THREE.PerspectiveCamera(45, globeContainer.clientWidth / globeContainer.clientHeight, 0.1, 1000);
-        camera.position.z = 50;
+        // Safely get dimensions to prevent NaN errors before CSS paints
+        let initWidth = container.clientWidth || (window.innerWidth > 768 ? window.innerWidth / 2 : window.innerWidth);
+        let initHeight = container.clientHeight || window.innerHeight * 0.8;
+
+        const camera = new THREE.PerspectiveCamera(45, initWidth / initHeight, 0.1, 1000);
+        camera.position.z = 40;
 
         const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-        renderer.setSize(globeContainer.clientWidth, globeContainer.clientHeight);
+        renderer.setSize(initWidth, initHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
-        globeContainer.appendChild(renderer.domElement);
+        container.appendChild(renderer.domElement);
 
-        const globeGroup = new THREE.Group();
-        scene.add(globeGroup);
+        // --- Cinematic Studio Lighting ---
+        // 1. Low Ambient Light for deep, high-contrast shadows
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.15);
+        scene.add(ambientLight);
 
-        // Core Sphere
-        const geometry = new THREE.SphereGeometry(15, 64, 64);
-        const particlesMat = new THREE.PointsMaterial({
-            color: 0x75A5E9,
-            size: 0.1,
-            transparent: true,
-            opacity: 0.8,
-            blending: THREE.AdditiveBlending
+        // 2. Key Rim Light (Vibrant Violet from the top-back-right)
+        const rimLight = new THREE.DirectionalLight(0x8e2de2, 3.5);
+        rimLight.position.set(15, 20, -10);
+        scene.add(rimLight);
+
+        // 3. Fill Light (Royal Blue from the front-left)
+        const fillLight = new THREE.DirectionalLight(0x113886, 2.5);
+        fillLight.position.set(-15, 0, 15);
+        scene.add(fillLight);
+
+        // 4. Subtle Front Light (Soft tech blue to illuminate the visor/face)
+        const frontLight = new THREE.PointLight(0x4C84D9, 1.2, 50);
+        frontLight.position.set(0, 5, 20);
+        scene.add(frontLight);
+
+        // Main grouping mechanism
+        const robotGroup = new THREE.Group();
+        scene.add(robotGroup);
+
+        // --- Load External GLB Model ---
+        const loader = new THREE.GLTFLoader();
+
+        loader.load(
+            'robot_head.glb',
+            function (gltf) {
+                const model = gltf.scene;
+
+                // Made smaller and moved downwards based on the previous adjustments
+                model.scale.set(55, 55, 55);
+                model.position.set(0, -10, 0);
+
+                // Premium Editorial Finish: High metalness, moderate roughness for matte highlights
+                model.traverse((child) => {
+                    if (child.isMesh && child.material) {
+                        child.material.metalness = 0.75;
+                        child.material.roughness = 0.55;
+                    }
+                });
+
+                robotGroup.add(model);
+            },
+            function (xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function (error) {
+                console.error('An error happened while loading the 3D model:', error);
+            }
+        );
+
+        // Interactive Mouse Tracking Logic for Robot Head
+        const mouse3D = new THREE.Vector2(0, 0);
+        const targetVector = new THREE.Vector3(0, 0, 40);
+
+        container.addEventListener('mousemove', (event) => {
+            const rect = container.getBoundingClientRect();
+            mouse3D.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse3D.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            targetVector.set(mouse3D.x * 20, mouse3D.y * 20, 40);
         });
-        const spherePoints = new THREE.Points(geometry, particlesMat);
-        globeGroup.add(spherePoints);
 
-        // Wireframe Mesh
-        const wireMat = new THREE.MeshBasicMaterial({
-            color: 0x3267C9,
-            wireframe: true,
-            transparent: true,
-            opacity: 0.15,
-            blending: THREE.AdditiveBlending
-        });
-        const sphereWire = new THREE.Mesh(geometry, wireMat);
-        globeGroup.add(sphereWire);
-
-        // Orbit Rings
-        const ringGeo = new THREE.RingGeometry(20, 20.2, 64);
-        const ringMat = new THREE.MeshBasicMaterial({ color: 0x4C84D9, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
-        const ring1 = new THREE.Mesh(ringGeo, ringMat);
-        ring1.rotation.x = Math.PI / 2;
-        globeGroup.add(ring1);
-
-        const ring2 = new THREE.Mesh(ringGeo, ringMat);
-        ring2.rotation.y = Math.PI / 3;
-        globeGroup.add(ring2);
-
-        // Store original vertices for animation
-        const positionAttribute = geometry.attributes.position;
-        const originalPositions = [];
-        for (let i = 0; i < positionAttribute.count; i++) {
-            originalPositions.push(new THREE.Vector3().fromBufferAttribute(positionAttribute, i));
-        }
-
-        // --- NEW: Raycaster & Mouse Tracking ---
-        const raycaster = new THREE.Raycaster();
-        const threeMouse = new THREE.Vector2(-100, -100);
-        let targetDisplacement = 0.3; // Base wave height
-        let currentDisplacement = 0.3;
-        let targetRotationSpeed = 0.002; // Base spin speed
-        let currentRotationSpeed = 0.002;
-        let targetTilt = 0.1; // Base tilt
-        let currentTilt = 0.1;
-
-        globeContainer.addEventListener('mousemove', (event) => {
-            const rect = globeContainer.getBoundingClientRect();
-            // Convert mouse position to normalized device coordinates (-1 to +1)
-            threeMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-            threeMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        container.addEventListener('mouseleave', () => {
+            targetVector.set(0, 0, 40);
         });
 
-        globeContainer.addEventListener('mouseleave', () => {
-            threeMouse.x = -100; // Move laser off-screen
-            threeMouse.y = -100;
-        });
-
-        // Handle Resizing
         window.addEventListener('resize', () => {
-            if(globeContainer) {
-                camera.aspect = globeContainer.clientWidth / globeContainer.clientHeight;
+            if(container) {
+                let newWidth = container.clientWidth || (window.innerWidth > 768 ? window.innerWidth / 2 : window.innerWidth);
+                let newHeight = container.clientHeight || window.innerHeight * 0.8;
+                camera.aspect = newWidth / newHeight;
                 camera.updateProjectionMatrix();
-                renderer.setSize(globeContainer.clientWidth, globeContainer.clientHeight);
+                renderer.setSize(newWidth, newHeight);
             }
         });
+
+        setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 100);
 
         const clock = new THREE.Clock();
+        const dummyObject = new THREE.Object3D();
 
-        function animateGlobe() {
-            requestAnimationFrame(animateGlobe);
-            const elapsedTime = clock.getElapsedTime();
+        function animateRobot() {
+            requestAnimationFrame(animateRobot);
+            const time = clock.getElapsedTime();
 
-            // --- NEW: Check for Mouse Intersections ---
-            raycaster.setFromCamera(threeMouse, camera);
-            // Check if laser hits the wireframe sphere
-            const intersects = raycaster.intersectObject(sphereWire);
+            // Smoothly rotate to look at cursor
+            dummyObject.position.copy(robotGroup.position);
+            dummyObject.lookAt(targetVector);
+            robotGroup.quaternion.slerp(dummyObject.quaternion, 0.05);
 
-            if (intersects.length > 0) {
-                // Mouse is hovering over the globe
-                targetDisplacement = 1.2; // Intense wave distortion
-                targetRotationSpeed = 0.008; // Spin faster
-                targetTilt = threeMouse.y * 0.5; // Tilt towards mouse
-                globeContainer.style.cursor = 'crosshair'; // Change cursor to look techy
-            } else {
-                // Mouse is off the globe
-                targetDisplacement = 0.3; // Return to calm wave
-                targetRotationSpeed = 0.002; // Return to slow spin
-                targetTilt = Math.sin(elapsedTime * 0.2) * 0.1; // Return to slow bobbing
-                globeContainer.style.cursor = 'default';
-            }
-
-            // Smooth easing for transitions
-            currentDisplacement += (targetDisplacement - currentDisplacement) * 0.05;
-            currentRotationSpeed += (targetRotationSpeed - currentRotationSpeed) * 0.05;
-            currentTilt += (targetTilt - currentTilt) * 0.05;
-
-            // Apply Rotations
-            globeGroup.rotation.y += currentRotationSpeed;
-            globeGroup.rotation.x = currentTilt;
-
-            // Add subtle parallax based on mouse position
-            if (intersects.length > 0) {
-                globeGroup.rotation.y += threeMouse.x * 0.01;
-            }
-
-            // Apply Wavy Vertex Animation
-            for (let i = 0; i < positionAttribute.count; i++) {
-                const vertex = originalPositions[i];
-
-                const wave1 = Math.sin(vertex.x * 0.2 + elapsedTime * 1.5);
-                const wave2 = Math.cos(vertex.y * 0.2 + elapsedTime * 1.5);
-
-                // Use the interactive currentDisplacement variable
-                const displacement = (wave1 + wave2) * currentDisplacement;
-
-                const normal = vertex.clone().normalize();
-                const newPos = vertex.clone().add(normal.multiplyScalar(displacement));
-
-                positionAttribute.setXYZ(i, newPos.x, newPos.y, newPos.z);
-            }
-            positionAttribute.needsUpdate = true;
-
-            // Animate rings
-            ring1.rotation.z -= 0.005;
-            ring2.rotation.z += 0.003;
+            // Idle floating animation
+            robotGroup.position.y = Math.sin(time * 1.5) * 1.5;
 
             renderer.render(scene, camera);
         }
-
-        animateGlobe();
+        animateRobot();
     }
 
     /* =================================================================
-       3. UI Interactions (Scroll Reveal, Magnetic Buttons, 3D Tilt)
+       4. UI Interactions (Scroll Reveal, Magnetic Buttons, 3D Tilt)
     ================================================================= */
 
     const revealElements = document.querySelectorAll('.reveal');
@@ -285,11 +273,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const y = e.clientY - rect.top - rect.height / 2;
 
             btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
-
             const span = btn.querySelector('span');
-            if(span) {
-                span.style.transform = `translate(${x * 0.1}px, ${y * 0.1}px)`;
-            }
+            if(span) span.style.transform = `translate(${x * 0.1}px, ${y * 0.1}px)`;
         });
 
         btn.addEventListener('mouseleave', () => {
