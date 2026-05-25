@@ -407,9 +407,61 @@
             animation: pulse 1s infinite alternate;
         }
 
+        /* =================================================================
+   Custom Robotics Cursor (Targeting Reticle)
+================================================================= */
+        * {
+            cursor: none !important;
+        }
+
+        .cursor-dot, .cursor-ring {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 10000; /* Keeps it above all UI elements and flash overlays */
+            transform: translate(-50%, -50%);
+        }
+
+        .cursor-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--c-violet);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--c-violet), 0 0 20px var(--c-violet);
+            transition: width 0.2s, height 0.2s;
+        }
+
+        .cursor-ring {
+            width: 34px;
+            height: 34px;
+            border: 1px solid rgba(67, 97, 238, 0.6);
+            border-radius: 50%;
+            transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, left 0.1s ease-out, top 0.1s ease-out, transform 0.3s ease;
+        }
+
+        .cursor-ring::before, .cursor-ring::after {
+            content: '';
+            position: absolute;
+            background: rgba(67, 97, 238, 0.6);
+        }
+        .cursor-ring::before { top: -4px; bottom: -4px; left: 50%; width: 1px; transform: translateX(-50%); }
+        .cursor-ring::after { left: -4px; right: -4px; top: 50%; height: 1px; transform: translateY(-50%); }
+
+        /* "Target Locked" state for buttons */
+        .cursor-ring.hover-locked {
+            width: 55px;
+            height: 55px;
+            background-color: rgba(142, 45, 226, 0.1);
+            border-color: var(--c-violet);
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+
     </style>
 </head>
 <body>
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
 
 <div class="flash-overlay" id="flash"></div>
 
@@ -757,7 +809,34 @@
 
     document.getElementById('btn-0').addEventListener('click', handleLaunchAction);
     document.getElementById('btn-1').addEventListener('click', handleLaunchAction);
+    /* =================================================================
+           CUSTOM CURSOR TRACKING LOGIC
+        ================================================================= */
+    const cursorDot = document.querySelector('.cursor-dot');
+    const cursorRing = document.querySelector('.cursor-ring');
 
+    window.addEventListener('mousemove', (e) => {
+        if (cursorDot && cursorRing) {
+            // Update dot position instantly
+            cursorDot.style.left = `${e.clientX}px`;
+            cursorDot.style.top = `${e.clientY}px`;
+
+            // Update ring position (CSS transition gives it a slight trailing effect)
+            cursorRing.style.left = `${e.clientX}px`;
+            cursorRing.style.top = `${e.clientY}px`;
+        }
+    });
+
+    // Add "Target Locked" effect when hovering over the launch buttons
+    const interactiveElements = document.querySelectorAll('.btn-launch');
+    interactiveElements.forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            if(cursorRing) cursorRing.classList.add('hover-locked');
+        });
+        el.addEventListener('mouseleave', () => {
+            if(cursorRing) cursorRing.classList.remove('hover-locked');
+        });
+    });
 </script>
 </body>
 </html>
