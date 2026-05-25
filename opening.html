@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TekNora System Launch</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Orbitron:wght@400;500;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS Variables based on TekNora Palette & Warning Colors */
+        :root {
+            --c-black: #020308;
+            --c-midnight: #060916;
+            --c-navy: #09132e;
+            --c-royal: #113886;
+            --c-purple-dark: #3a0ca3;
+            --c-violet: #8e2de2;
+            --c-electric: #4361ee;
+            --c-silver: #e0e4ec;
+            --c-silver-muted: #a0a5b5;
+            --c-warning-red: #ff1f3d;
+            --c-dark-red: #3a0008;
+
+            --font-heading: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-tech: 'Orbitron', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--c-black);
+            color: var(--c-silver);
+            font-family: var(--font-body);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+            transition: background-color 0.5s ease;
+        }
+
+        /* Canvas Background */
+        #bg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Scanlines Overlay */
+        .scanlines {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* HUD Elements */
+        .hud-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .hud-corner {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border: 2px solid var(--c-royal);
+            opacity: 0.7;
+            transition: border-color 0.5s ease, transform 0.3s ease;
+        }
+        .top-left { top: 30px; left: 30px; border-right: none; border-bottom: none; }
+        .top-right { top: 30px; right: 30px; border-left: none; border-bottom: none; }
+        .bottom-left { bottom: 30px; left: 30px; border-right: none; border-top: none; }
+        .bottom-right { bottom: 30px; right: 30px; border-left: none; border-top: none; }
+
+        .hud-text {
+            font-family: var(--font-tech);
+            font-size: 0.75rem;
+            color: var(--c-electric);
+            position: absolute;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            transition: color 0.5s ease;
+        }
+        .hud-t1 { top: 40px; left: 100px; }
+        .hud-t2 { top: 40px; right: 100px; text-align: right; }
+        .hud-t3 { bottom: 40px; left: 100px; }
+        .hud-t4 { bottom: 40px; right: 100px; text-align: right; }
+
+        /* Center Glass Panel */
+        .center-panel {
+            position: relative;
+            z-index: 10;
+            background: rgba(6, 9, 22, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(142, 45, 226, 0.3);
+            border-top: 1px solid rgba(224, 228, 236, 0.4);
+            border-radius: 16px;
+            padding: 3.5rem;
+            text-align: center;
+            max-width: 800px;
+            width: 90%;
+            box-shadow: 0 0 40px rgba(17, 56, 134, 0.5), inset 0 0 20px rgba(142, 45, 226, 0.1);
+            transition: all 0.5s ease;
+        }
+
+        .center-panel::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--c-violet), var(--c-electric), transparent);
+            transition: background 0.5s ease;
+        }
+
+        /* Typography */
+        .logo {
+            height: 75px;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 0 10px rgba(67, 97, 238, 0.4));
+            transition: filter 0.5s ease;
+        }
+
+        .top-label {
+            font-family: var(--font-tech);
+            color: var(--c-violet);
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            margin-bottom: 1rem;
+            transition: color 0.5s ease;
+        }
+
+        .main-title {
+            font-family: var(--font-heading);
+            font-size: 3.8rem;
+            color: var(--c-silver);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(142, 45, 226, 0.4);
+            transition: color 0.5s ease, text-shadow 0.5s ease;
+        }
+
+        .subtitle {
+            font-family: var(--font-heading);
+            font-size: 1.6rem;
+            color: var(--c-electric);
+            margin-bottom: 2rem;
+            letter-spacing: 1px;
+            transition: color 0.5s ease;
+        }
+
+        .event-text {
+            font-size: 1.1rem;
+            color: var(--c-silver-muted);
+            margin-bottom: 3rem;
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        /* Interaction Elements */
+        .instruction-text {
+            font-family: var(--font-tech);
+            font-size: 1.3rem;
+            color: var(--c-silver);
+            letter-spacing: 3px;
+            margin-bottom: 2rem;
+            animation: pulse 1.5s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; text-shadow: 0 0 5px var(--c-silver); }
+            100% { opacity: 1; text-shadow: 0 0 20px var(--c-electric), 0 0 40px var(--c-violet); }
+        }
+
+        .btn-launch {
+            background: rgba(17, 56, 134, 0.2);
+            border: 1px solid var(--c-electric);
+            color: var(--c-silver);
+            font-family: var(--font-tech);
+            font-size: 1rem;
+            padding: 1rem 2.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            outline: none;
+        }
+
+        .btn-launch:hover, .btn-launch:focus {
+            background: rgba(67, 97, 238, 0.4);
+            border-color: var(--c-violet);
+            box-shadow: 0 0 25px rgba(142, 45, 226, 0.6);
+            color: #fff;
+        }
+
+        /* ================= STATE CONTAINERS ================= */
+        .stage {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .active-stage {
+            display: flex;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ================= STAGE 1: WARNING MODE ================= */
+        body.warning-mode .center-panel {
+            background: rgba(22, 3, 5, 0.85);
+            border-color: rgba(255, 31, 61, 0.6);
+            box-shadow: 0 0 50px rgba(255, 31, 61, 0.4), inset 0 0 30px rgba(255, 31, 61, 0.2);
+        }
+        body.warning-mode .center-panel::before {
+            background: linear-gradient(90deg, transparent, var(--c-warning-red), transparent);
+        }
+        body.warning-mode .hud-corner {
+            border-color: var(--c-warning-red);
+            transform: scale(1.1);
+        }
+        body.warning-mode .hud-text {
+            color: var(--c-warning-red);
+        }
+        body.warning-mode .warning-title {
+            color: var(--c-warning-red);
+            font-family: var(--font-tech);
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px var(--c-warning-red);
+            letter-spacing: 2px;
+            animation: textFlicker 3s infinite;
+        }
+        body.warning-mode .warning-subtext {
+            color: var(--c-silver);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        body.warning-mode .status-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+            text-align: left;
+            background: rgba(255, 31, 61, 0.1);
+            border-left: 3px solid var(--c-warning-red);
+            padding: 1.5rem;
+            margin-bottom: 2.5rem;
+            font-family: var(--font-tech);
+            font-size: 0.9rem;
+            color: var(--c-silver);
+        }
+        body.warning-mode .status-value {
+            color: var(--c-warning-red);
+            float: right;
+            text-shadow: 0 0 10px var(--c-warning-red);
+        }
+        body.warning-mode .btn-launch {
+            border-color: var(--c-warning-red);
+            background: rgba(255, 31, 61, 0.15);
+        }
+        body.warning-mode .btn-launch:hover {
+            background: rgba(255, 31, 61, 0.3);
+            box-shadow: 0 0 25px rgba(255, 31, 61, 0.6);
+        }
+        body.warning-mode .instruction-text {
+            animation: pulseWarning 1s infinite alternate;
+        }
+
+        @keyframes pulseWarning {
+            0% { opacity: 0.4; text-shadow: 0 0 5px var(--c-warning-red); color: var(--c-silver); }
+            100% { opacity: 1; text-shadow: 0 0 20px var(--c-warning-red), 0 0 40px var(--c-warning-red); color: #fff; }
+        }
+
+        /* ================= STAGE 2: LAUNCH MODE ================= */
+        .countdown-number {
+            font-family: var(--font-heading);
+            font-size: 8rem;
+            color: #fff;
+            text-shadow: 0 0 30px var(--c-electric), 0 0 60px var(--c-violet);
+            line-height: 1;
+            margin: 1rem 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(9, 19, 46, 0.8);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+            margin: 2rem 0 1rem 0;
+            border: 1px solid rgba(67, 97, 238, 0.3);
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--c-electric), var(--c-violet), #00ff66);
+            box-shadow: 0 0 15px var(--c-electric);
+            transition: width 1s linear;
+        }
+
+        .dynamic-status {
+            font-family: var(--font-tech);
+            font-size: 1.1rem;
+            color: var(--c-electric);
+            letter-spacing: 2px;
+            min-height: 30px;
+            text-shadow: 0 0 10px var(--c-electric);
+        }
+
+        /* ================= SPECIAL EFFECTS ================= */
+        .screen-shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both infinite;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-3px, 2px) rotate(-1deg); }
+            40% { transform: translate(3px, -2px) rotate(1deg); }
+            60% { transform: translate(-3px, -2px) rotate(0deg); }
+            80% { transform: translate(3px, 2px) rotate(-1deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        .glitch {
+            animation: textGlitch 0.2s linear infinite;
+            color: #fff;
+        }
+
+        @keyframes textGlitch {
+            0% { text-shadow: 3px 0 var(--c-warning-red), -3px 0 var(--c-electric); transform: translate(0); }
+            20% { text-shadow: -3px 0 var(--c-warning-red), 3px 0 var(--c-electric); transform: translate(-2px, 1px); }
+            40% { text-shadow: 3px 0 var(--c-warning-red), -3px 0 var(--c-electric); transform: translate(2px, -1px); }
+            60% { text-shadow: -3px 0 var(--c-warning-red), 3px 0 var(--c-electric); transform: translate(-1px, 2px); }
+            80% { text-shadow: 3px 0 var(--c-warning-red), -3px 0 var(--c-electric); transform: translate(1px, -2px); }
+            100% { text-shadow: 3px 0 var(--c-warning-red), -3px 0 var(--c-electric); transform: translate(0); }
+        }
+
+        @keyframes textFlicker {
+            0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% { opacity: 1; }
+            20%, 21.999%, 63%, 63.999%, 65%, 69.999% { opacity: 0.4; }
+        }
+
+        .red-flash {
+            animation: redFlashBg 0.15s infinite alternate;
+        }
+        @keyframes redFlashBg {
+            0% { background-color: rgba(255, 31, 61, 0.1); }
+            100% { background-color: rgba(67, 97, 238, 0.1); }
+        }
+
+        .fade-out {
+            opacity: 0;
+            transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Final Flash Overlay */
+        .flash-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            box-shadow: inset 0 0 100px var(--c-electric);
+        }
+
+        .success-text {
+            font-family: var(--font-heading);
+            font-size: 3.5rem;
+            color: #00ff66;
+            text-shadow: 0 0 20px #00ff66, 0 0 40px #00ff66;
+            letter-spacing: 4px;
+            animation: pulse 1s infinite alternate;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="flash-overlay" id="flash"></div>
+
+<canvas id="bg-canvas"></canvas>
+<div class="scanlines"></div>
+
+<!-- HUD Brackets & Status -->
+<div class="hud-container">
+    <div class="hud-corner top-left"></div>
+    <div class="hud-text hud-t1" id="hud-status-1">SYSTEM_READY<br>CORE: STANDBY</div>
+
+    <div class="hud-corner top-right"></div>
+    <div class="hud-text hud-t2" id="hud-status-2">DEPLOY_TARGET:<br>VERCEL</div>
+
+    <div class="hud-corner bottom-left"></div>
+    <div class="hud-text hud-t3" id="hud-status-3">INPUT_MODE:<br>KEYBOARD</div>
+
+    <div class="hud-corner bottom-right"></div>
+    <div class="hud-text hud-t4" id="hud-status-4">ROBOTICS_CORE:<br>LOCKED</div>
+</div>
+
+<!-- Main Interface Panel -->
+<div class="center-panel" id="main-panel">
+
+    <!-- STAGE 0: Initial State -->
+    <div id="stage-0" class="stage active-stage">
+        <img src="TekNora Logo.svg" alt="TekNora Logo" class="logo" onerror="this.style.display='none'">
+        <div class="top-label">TEKNORA SYSTEM STANDBY</div>
+        <h1 class="main-title">TekNora Robotics Club</h1>
+        <h2 class="subtitle">Official Website Launch</h2>
+
+        <p class="event-text">
+            Good Shepherd Convent Kandy<br>
+            IT Day 2026
+        </p>
+
+        <div class="instruction-text">PRESS ENTER TO INITIALIZE</div>
+        <button class="btn-launch" id="btn-0">Initialize Launch</button>
+    </div>
+
+    <!-- STAGE 1: Warning Authorization -->
+    <div id="stage-1" class="stage">
+        <h1 class="warning-title">LAUNCH AUTHORIZATION REQUIRED</h1>
+        <p class="warning-subtext">
+            TekNora Core is locked.<br>
+            Principal authorization detected.<br>
+            Press ENTER again to confirm system launch.
+        </p>
+
+        <div class="status-grid">
+            <div>AUTH_LAYER_01: <span class="status-value">VERIFIED</span></div>
+            <div>KEYBOARD_INPUT: <span class="status-value">DETECTED</span></div>
+            <div>LAUNCH_CORE: <span class="status-value">ARMED</span></div>
+            <div>WEBSITE_TARGET: <span class="status-value">VERCEL</span></div>
+            <div>FINAL_CONFIRMATION: <span class="status-value" style="animation: textFlicker 1.5s infinite">REQUIRED</span></div>
+        </div>
+
+        <div class="instruction-text">PRESS ENTER AGAIN TO LAUNCH</div>
+        <button class="btn-launch" id="btn-1">Confirm Launch</button>
+    </div>
+
+    <!-- STAGE 2: Countdown & Launch -->
+    <div id="stage-2" class="stage">
+        <div class="top-label" id="countdown-label">LAUNCHING IN</div>
+        <div class="countdown-number" id="countdown-num">10</div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <div class="dynamic-status" id="dynamic-status">Initializing TekNora Core...</div>
+        <button class="btn-launch" style="opacity:0.5; margin-top:2rem; cursor:default;" disabled>Launching...</button>
+    </div>
+
+    <!-- STAGE 3: Success -->
+    <div id="stage-3" class="stage">
+        <div class="success-text" id="success-title">SYSTEM ONLINE</div>
+        <h2 class="subtitle" style="color:var(--c-silver); margin-top: 1rem; text-shadow: 0 0 10px var(--c-silver);">TEKNORA INTERFACE LAUNCHED</h2>
+    </div>
+
+</div>
+
+<script>
+    /* =================================================================
+       STATE MANAGEMENT
+    ================================================================= */
+    let launchStage = 0;
+    // 0 = Initial, 1 = Warning, 2 = Countdown, 3 = Redirecting
+
+    const stage0 = document.getElementById('stage-0');
+    const stage1 = document.getElementById('stage-1');
+    const stage2 = document.getElementById('stage-2');
+    const stage3 = document.getElementById('stage-3');
+    const mainPanel = document.getElementById('main-panel');
+
+    /* =================================================================
+       CANVAS & ANIMATION LOGIC
+    ================================================================= */
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+
+    // Theme Colors
+    const techColors = ['#113886', '#3a0ca3', '#8e2de2', '#4361ee', '#e0e4ec'];
+    const warningColors = ['#ff1f3d', '#3a0008', '#8e2de2', '#4361ee'];
+
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Stage 0 Particles
+    let particles = [];
+    for (let i = 0; i < 80; i++) {
+        particles.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * 0.8,
+            vy: (Math.random() - 0.5) * 0.8,
+            size: Math.random() * 2 + 1,
+            color: techColors[Math.floor(Math.random() * techColors.length)]
+        });
+    }
+
+    // Binary Rain Configuration
+    const fontSize = 18;
+    let columns = 0;
+    let drops = [];
+    let rainSpeed = 1;
+
+    function initRain() {
+        columns = Math.floor(width / fontSize);
+        drops = [];
+        for (let x = 0; x < columns; x++) {
+            drops[x] = Math.random() * -100; // Start off-screen
+        }
+    }
+    initRain();
+
+    function drawStage0() {
+        // Calm network particles
+        ctx.clearRect(0, 0, width, height);
+
+        // Faint Grid
+        ctx.strokeStyle = 'rgba(67, 97, 238, 0.05)';
+        ctx.lineWidth = 1;
+        for(let i = 0; i < width; i += 60) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, height); ctx.stroke(); }
+        for(let i = 0; i < height; i += 60) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(width, i); ctx.stroke(); }
+
+        particles.forEach((p, index) => {
+            p.x += p.vx; p.y += p.vy;
+            if (p.x < 0 || p.x > width) p.vx *= -1;
+            if (p.y < 0 || p.y > height) p.vy *= -1;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, p.size, p.size);
+            for (let j = index + 1; j < particles.length; j++) {
+                const p2 = particles[j];
+                const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                if (dist < 120) {
+                    ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y);
+                    ctx.strokeStyle = `rgba(67, 97, 238, ${0.3 - dist/400})`;
+                    ctx.lineWidth = 0.5; ctx.stroke();
+                }
+            }
+        });
+    }
+
+    function drawBinaryRain(isIntense, isWarning) {
+        // Trail effect
+        ctx.fillStyle = isWarning ? 'rgba(6, 9, 22, 0.2)' : 'rgba(2, 3, 8, 0.15)';
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.font = fontSize + 'px Orbitron';
+        const colorPalette = isWarning ? warningColors : techColors;
+
+        for (let i = 0; i < drops.length; i++) {
+            const text = Math.random() > 0.5 ? '1' : '0';
+
+            // Add rare hex characters during intense mode
+            const finalTxt = (isIntense && Math.random() > 0.9) ? Math.floor(Math.random()*16).toString(16).toUpperCase() : text;
+
+            ctx.fillStyle = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+
+            // Overexpose colors if intense
+            if (isIntense && Math.random() > 0.8) ctx.fillStyle = '#fff';
+
+            ctx.fillText(finalTxt, i * fontSize, drops[i] * fontSize);
+
+            if (drops[i] * fontSize > height && Math.random() > 0.95) {
+                drops[i] = 0;
+            }
+            drops[i] += rainSpeed;
+        }
+    }
+
+    function animateCanvas() {
+        if (launchStage === 0) {
+            drawStage0();
+        } else if (launchStage === 1) {
+            drawBinaryRain(false, true); // Warning rain
+        } else if (launchStage >= 2) {
+            drawBinaryRain(launchStage === 2 && countdownValue <= 2, false); // Fast rain at end
+        }
+        requestAnimationFrame(animateCanvas);
+    }
+    animateCanvas();
+
+    /* =================================================================
+       STAGE TRANSITION LOGIC
+    ================================================================= */
+
+    function switchStage(hideEl, showEl) {
+        hideEl.classList.remove('active-stage');
+        setTimeout(() => {
+            hideEl.style.display = 'none';
+            showEl.style.display = 'flex';
+            // Trigger reflow
+            void showEl.offsetWidth;
+            showEl.classList.add('active-stage');
+        }, 300); // Wait for fade out
+    }
+
+    function enterWarningMode() {
+        launchStage = 1;
+        switchStage(stage0, stage1);
+
+        document.body.classList.add('warning-mode');
+        document.getElementById('hud-status-1').innerHTML = 'AUTH_LAYER:<br><span style="color:#ff1f3d">PENDING</span>';
+        document.getElementById('hud-status-4').innerHTML = 'ROBOTICS_CORE:<br><span style="color:#ff1f3d">LOCKED_WARN</span>';
+
+        rainSpeed = 1.5; // Start gentle rain
+    }
+
+    let countdownValue = 10;
+    const countdownMessages = [
+        "Launch Override Complete...",       // 0
+        "Interface Glitch Detected...",      // 1
+        "Final System Verification...",      // 2
+        "Unlocking Website Gateway...",      // 3
+        "Routing Binary Streams...",         // 4
+        "Synchronizing Command Nodes...",    // 5
+        "Activating Sensor Grid...",         // 6
+        "Loading Robotics Interface...",     // 7
+        "Establishing Vercel Link...",       // 8
+        "Initializing TekNora Core...",      // 9
+        "Initializing TekNora Core..."       // 10
+    ];
+
+    function startFinalLaunch() {
+        launchStage = 2;
+        document.body.classList.remove('warning-mode');
+        switchStage(stage1, stage2);
+
+        document.getElementById('hud-status-1').innerHTML = 'SYSTEM_READY<br>CORE: IGNITING';
+        document.getElementById('hud-status-4').innerHTML = 'ROBOTICS_CORE:<br>SPOOLING UP';
+
+        rainSpeed = 2.5; // Faster rain
+
+        const numEl = document.getElementById('countdown-num');
+        const statusEl = document.getElementById('dynamic-status');
+        const progressEl = document.getElementById('progress-bar');
+
+        // Initial Set
+        numEl.innerText = countdownValue;
+        statusEl.innerText = countdownMessages[countdownValue];
+        progressEl.style.width = '10%';
+
+        const timer = setInterval(() => {
+            countdownValue--;
+
+            // Update UI
+            numEl.innerText = countdownValue;
+            statusEl.innerText = countdownMessages[countdownValue];
+            progressEl.style.width = `${100 - (countdownValue * 10)}%`;
+
+            // T-2 Seconds: Intense Glitch Mode
+            if (countdownValue === 2) {
+                triggerFinalGlitch();
+            }
+
+            // T-0 Seconds: Launch
+            if (countdownValue <= 0) {
+                clearInterval(timer);
+                executeRedirect();
+            }
+        }, 1000);
+    }
+
+    function triggerFinalGlitch() {
+        rainSpeed = 6; // Extreme rain
+        document.body.classList.add('screen-shake', 'red-flash');
+        document.getElementById('countdown-num').classList.add('glitch');
+        document.getElementById('countdown-label').innerText = 'SYSTEM OVERRIDE';
+        document.getElementById('countdown-label').classList.add('glitch');
+        mainPanel.style.borderColor = '#ff1f3d';
+        mainPanel.style.boxShadow = '0 0 80px rgba(67, 97, 238, 0.8), inset 0 0 50px rgba(255, 31, 61, 0.5)';
+    }
+
+    function executeRedirect() {
+        launchStage = 3;
+        document.body.classList.remove('screen-shake', 'red-flash');
+        switchStage(stage2, stage3);
+
+        mainPanel.style.borderColor = '#00ff66';
+        mainPanel.style.boxShadow = '0 0 80px rgba(0, 255, 102, 0.4), inset 0 0 30px rgba(0, 255, 102, 0.1)';
+        document.getElementById('progress-bar').style.width = '100%';
+        document.getElementById('progress-bar').style.background = '#00ff66';
+
+        // Flash & Fade out sequence
+        setTimeout(() => {
+            document.getElementById('flash').style.opacity = '1';
+            document.getElementById('flash').style.background = '#09132e'; // Deep blue flash
+
+            setTimeout(() => {
+                document.body.classList.add('fade-out');
+
+                // Final Redirect
+                setTimeout(() => {
+                    window.location.href = 'https://good-shepherd-mu.vercel.app/';
+                }, 1000);
+
+            }, 200);
+        }, 1500); // Show "SYSTEM ONLINE" for 1.5s
+    }
+
+    /* =================================================================
+       EVENT LISTENERS (Keyboard & Buttons)
+    ================================================================= */
+    function handleLaunchAction() {
+        if (launchStage === 0) {
+            enterWarningMode();
+        } else if (launchStage === 1) {
+            startFinalLaunch();
+        }
+        // Ignore if stage >= 2 (countdown already running)
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            handleLaunchAction();
+        }
+    });
+
+    document.getElementById('btn-0').addEventListener('click', handleLaunchAction);
+    document.getElementById('btn-1').addEventListener('click', handleLaunchAction);
+
+</script>
+</body>
+</html>
